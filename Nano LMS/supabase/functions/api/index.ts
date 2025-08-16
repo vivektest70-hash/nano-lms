@@ -72,26 +72,32 @@ let users = [
   {
     id: '1',
     email: 'admin@animaker.com',
-    firstName: 'Admin',
-    lastName: 'User',
+    first_name: 'Admin',
+    last_name: 'User',
     role: 'admin',
-    work_type: 'All'
+    work_type: 'All',
+    approval_status: 'approved',
+    created_at: '2024-01-01T00:00:00Z'
   },
   {
     id: '2',
     email: 'trainer@nanolms.com',
-    firstName: 'Trainer',
-    lastName: 'User',
+    first_name: 'Trainer',
+    last_name: 'User',
     role: 'trainer',
-    work_type: 'full-time'
+    work_type: 'full-time',
+    approval_status: 'approved',
+    created_at: '2024-01-15T00:00:00Z'
   },
   {
     id: '3',
     email: 'learner@nanolms.com',
-    firstName: 'Learner',
-    lastName: 'User',
+    first_name: 'Learner',
+    last_name: 'User',
     role: 'learner',
-    work_type: 'part-time'
+    work_type: 'part-time',
+    approval_status: 'approved',
+    created_at: '2024-02-01T00:00:00Z'
   }
 ]
 
@@ -403,12 +409,12 @@ serve(async (req) => {
             progress: Math.floor(Math.random() * 100),
             completed: Math.random() > 0.5
           })),
-          certificates: certificates.filter(cert => cert.issuedTo === `${user.firstName} ${user.lastName}`),
+          certificates: certificates.filter(cert => cert.issuedTo === `${user.first_name} ${user.last_name}`),
           stats: {
             totalEnrollments: courses.length,
             completedCourses: Math.floor(courses.length * 0.6),
             averageScore: Math.floor(Math.random() * 30) + 70,
-            certificatesEarned: certificates.filter(cert => cert.issuedTo === `${user.firstName} ${user.lastName}`).length
+            certificatesEarned: certificates.filter(cert => cert.issuedTo === `${user.first_name} ${user.last_name}`).length
           }
         }
         
@@ -721,10 +727,12 @@ serve(async (req) => {
           const newUser = {
             id: (users.length + 1).toString(),
             email: body.email || 'newuser@example.com',
-            firstName: body.firstName || body.first_name || 'New',
-            lastName: body.lastName || body.last_name || 'User',
+            first_name: body.firstName || body.first_name || 'New',
+            last_name: body.lastName || body.last_name || 'User',
             role: body.role || 'learner',
-            work_type: body.work_type || 'part-time'
+            work_type: body.work_type || 'part-time',
+            approval_status: 'approved',
+            created_at: new Date().toISOString()
           }
           users.push(newUser)
           
