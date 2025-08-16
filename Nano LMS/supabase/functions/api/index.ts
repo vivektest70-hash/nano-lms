@@ -65,6 +65,68 @@ let courses = [
         order: 3
       }
     ]
+  },
+  {
+    id: '3',
+    title: 'Full Stack Development',
+    description: 'Build complete web applications with frontend and backend',
+    instructor: 'Mike Johnson',
+    duration: '12 weeks',
+    level: 'Intermediate',
+    lessons: [
+      {
+        id: '7',
+        title: 'Backend Fundamentals',
+        content: 'Learn server-side development basics',
+        duration_minutes: 60,
+        order: 1
+      },
+      {
+        id: '8',
+        title: 'Database Design',
+        content: 'Design and implement databases',
+        duration_minutes: 75,
+        order: 2
+      },
+      {
+        id: '9',
+        title: 'API Development',
+        content: 'Build RESTful APIs',
+        duration_minutes: 90,
+        order: 3
+      }
+    ]
+  },
+  {
+    id: '4',
+    title: 'Mobile App Development',
+    description: 'Create mobile applications with React Native',
+    instructor: 'Sarah Wilson',
+    duration: '10 weeks',
+    level: 'Advanced',
+    lessons: [
+      {
+        id: '10',
+        title: 'React Native Basics',
+        content: 'Introduction to React Native development',
+        duration_minutes: 60,
+        order: 1
+      },
+      {
+        id: '11',
+        title: 'Mobile UI/UX',
+        content: 'Design mobile user interfaces',
+        duration_minutes: 75,
+        order: 2
+      },
+      {
+        id: '12',
+        title: 'App Deployment',
+        content: 'Deploy apps to app stores',
+        duration_minutes: 90,
+        order: 3
+      }
+    ]
   }
 ]
 
