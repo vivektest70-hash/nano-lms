@@ -1049,6 +1049,47 @@ serve(async (req) => {
       })
     }
     
+    // Handle certificate generation (e.g., /certificates/generate-all)
+    if (actualPath === '/certificates/generate-all' && method === 'POST') {
+      console.log('Generate all certificates endpoint matched!')
+      
+      try {
+        // For demo purposes, return all existing certificates
+        // In a real implementation, you would generate certificates based on course completions
+        const allCertificates = certificates.map(cert => ({
+          id: cert.id,
+          certificate_number: `CERT-${cert.id}`,
+          course_title: cert.course,
+          course_category: cert.category,
+          issued_at: cert.issuedDate,
+          status: cert.status
+        }))
+        
+        return new Response(JSON.stringify({ 
+          message: 'Certificates generated successfully',
+          certificates: allCertificates
+        }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            ...corsHeaders
+          }
+        })
+        
+      } catch (error) {
+        console.log('Generate certificates error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
     // Handle certificate download (e.g., /certificates/1/download)
     if (actualPath.match(/^\/certificates\/\d+\/download$/) && method === 'GET') {
       const certificateId = actualPath.split('/')[2] // Get ID from /certificates/1/download
