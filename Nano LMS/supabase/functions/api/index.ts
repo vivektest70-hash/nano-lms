@@ -86,7 +86,7 @@ serve(async (req) => {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control, pragma',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400'
@@ -97,7 +97,7 @@ serve(async (req) => {
   // Common CORS headers for all responses
   const corsHeaders = {
     'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control, pragma',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true'
   }
@@ -286,6 +286,29 @@ serve(async (req) => {
       })
     }
     
+    // Handle individual course requests (e.g., /courses/1, /courses/2)
+    if (actualPath.match(/^\/courses\/\d+$/) && method === 'GET') {
+      const courseId = actualPath.split('/').pop()
+      const course = courses.find(c => c.id === courseId)
+      
+      if (course) {
+        return new Response(JSON.stringify({ course: course }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      } else {
+        return new Response(JSON.stringify({ error: 'Course not found' }), {
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
     if (actualPath === '/users' && method === 'GET') {
       return new Response(JSON.stringify({ users: users }), {
         headers: { 
@@ -293,6 +316,29 @@ serve(async (req) => {
           ...corsHeaders
         }
       })
+    }
+    
+    // Handle individual user requests (e.g., /users/1, /users/2)
+    if (actualPath.match(/^\/users\/\d+$/) && method === 'GET') {
+      const userId = actualPath.split('/').pop()
+      const user = users.find(u => u.id === userId)
+      
+      if (user) {
+        return new Response(JSON.stringify({ user: user }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      } else {
+        return new Response(JSON.stringify({ error: 'User not found' }), {
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
     }
     
     if (actualPath === '/pending-approval' && method === 'GET') {
