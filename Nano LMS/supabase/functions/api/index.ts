@@ -341,6 +341,43 @@ serve(async (req) => {
       }
     }
     
+    // Handle dashboard data
+    if (actualPath === '/dashboard' && method === 'GET') {
+      const dashboardData = {
+        overallProgress: 75,
+        totalCourses: courses.length,
+        completedCourses: 2,
+        totalUsers: users.length,
+        recentActivity: [
+          {
+            id: 1,
+            type: 'course_completed',
+            message: 'Completed Introduction to Web Development',
+            timestamp: new Date().toISOString()
+          },
+          {
+            id: 2,
+            type: 'user_registered',
+            message: 'New user registered',
+            timestamp: new Date().toISOString()
+          }
+        ],
+        topCourses: courses.slice(0, 3),
+        userStats: {
+          totalEnrollments: 15,
+          averageScore: 85,
+          certificatesEarned: 3
+        }
+      }
+      
+      return new Response(JSON.stringify(dashboardData), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
     if (actualPath === '/pending-approval' && method === 'GET') {
       return new Response(JSON.stringify({ pendingUsers: [] }), {
         headers: { 
@@ -373,7 +410,21 @@ serve(async (req) => {
     if (method === 'GET') {
       // Handle any path that contains 'user-progress' (check this first)
       if (actualPath.includes('user-progress')) {
-        return new Response(JSON.stringify({ progress: [] }), {
+        const userProgress = {
+          overallProgress: 75,
+          courses: courses.map(course => ({
+            id: course.id,
+            title: course.title,
+            progress: Math.floor(Math.random() * 100),
+            completed: Math.random() > 0.5,
+            lastAccessed: new Date().toISOString()
+          })),
+          totalCourses: courses.length,
+          completedCourses: Math.floor(courses.length * 0.6),
+          certificates: certificates
+        }
+        
+        return new Response(JSON.stringify(userProgress), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -424,6 +475,26 @@ serve(async (req) => {
       // Handle any path that contains 'users'
       if (actualPath.includes('users')) {
         return new Response(JSON.stringify({ users: users }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle enrollments
+      if (actualPath.includes('enrollments')) {
+        const enrollments = courses.map(course => ({
+          id: Math.floor(Math.random() * 1000),
+          courseId: course.id,
+          courseTitle: course.title,
+          userId: '1',
+          enrolledAt: new Date().toISOString(),
+          progress: Math.floor(Math.random() * 100),
+          completed: Math.random() > 0.5
+        }))
+        
+        return new Response(JSON.stringify({ enrollments: enrollments }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
