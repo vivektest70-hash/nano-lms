@@ -134,6 +134,61 @@ serve(async (req) => {
       }
     }
 
+    // Handle other endpoints with placeholder responses
+    if (actualPath === '/courses' && method === 'GET') {
+      return new Response(JSON.stringify({ courses: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath === '/users' && method === 'GET') {
+      return new Response(JSON.stringify({ users: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath === '/pending-approval' && method === 'GET') {
+      return new Response(JSON.stringify({ pendingUsers: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath === '/certificates' && method === 'GET') {
+      return new Response(JSON.stringify({ certificates: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath === '/leaderboard' && method === 'GET') {
+      return new Response(JSON.stringify({ leaderboard: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath.startsWith('/courses?') && method === 'GET') {
+      return new Response(JSON.stringify({ courses: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+
     return new Response(JSON.stringify({ error: 'Route not found', path: actualPath, originalPath: path }), {
       status: 404,
       headers: { 
