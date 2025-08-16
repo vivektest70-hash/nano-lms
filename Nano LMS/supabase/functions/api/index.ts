@@ -86,7 +86,7 @@ serve(async (req) => {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400'
@@ -97,7 +97,7 @@ serve(async (req) => {
   // Common CORS headers for all responses
   const corsHeaders = {
     'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, cache-control',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Credentials': 'true'
   }
@@ -278,7 +278,7 @@ serve(async (req) => {
     
     // Handle other endpoints with placeholder responses (no auth check for now)
     if (actualPath === '/courses' && method === 'GET') {
-      return new Response(JSON.stringify({ courses: [] }), {
+      return new Response(JSON.stringify({ courses: courses }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -287,7 +287,7 @@ serve(async (req) => {
     }
     
     if (actualPath === '/users' && method === 'GET') {
-      return new Response(JSON.stringify({ users: [] }), {
+      return new Response(JSON.stringify({ users: users }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -315,7 +315,7 @@ serve(async (req) => {
     }
     
     if (actualPath === '/courses/all' && method === 'GET') {
-      return new Response(JSON.stringify({ courses: [] }), {
+      return new Response(JSON.stringify({ courses: courses }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -337,7 +337,7 @@ serve(async (req) => {
       
       // Handle any path that contains 'all' (for courses listing)
       if (actualPath.includes('all')) {
-        return new Response(JSON.stringify({ courses: [] }), {
+        return new Response(JSON.stringify({ courses: courses }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -547,7 +547,7 @@ serve(async (req) => {
     }
     
     if (actualPath === '/certificates' && method === 'GET') {
-      return new Response(JSON.stringify({ certificates: [] }), {
+      return new Response(JSON.stringify({ certificates: certificates }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -556,7 +556,7 @@ serve(async (req) => {
     }
     
     if (actualPath === '/leaderboard' && method === 'GET') {
-      return new Response(JSON.stringify({ leaderboard: [] }), {
+      return new Response(JSON.stringify({ leaderboard: leaderboard }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
@@ -565,7 +565,7 @@ serve(async (req) => {
     }
     
     if (actualPath.startsWith('/courses?') && method === 'GET') {
-      return new Response(JSON.stringify({ courses: [] }), {
+      return new Response(JSON.stringify({ courses: courses }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
