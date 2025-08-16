@@ -733,6 +733,65 @@ serve(async (req) => {
           }
         })
       }
+
+      // Handle quizzes for a specific course
+      if (actualPath.match(/^\/quizzes\/courses\/\d+$/)) {
+        try {
+          const courseId = actualPath.split('/').pop()
+          console.log('Fetching quizzes for course:', courseId)
+          
+          // For now, return empty quizzes array
+          // In a real implementation, you would query the quizzes table
+          return new Response(JSON.stringify({ 
+            quizzes: [],
+            message: 'No quizzes found for this course'
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Quizzes fetch error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+
+      // Handle course enrollments
+      if (actualPath === '/courses/enrollments') {
+        try {
+          console.log('Fetching course enrollments')
+          
+          // For now, return empty enrollments array
+          // In a real implementation, you would query the course_enrollments table
+          return new Response(JSON.stringify({ 
+            enrollments: [],
+            message: 'No enrollments found'
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Enrollments fetch error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
     }
 
     // Handle POST requests
@@ -884,6 +943,61 @@ serve(async (req) => {
           })
         } catch (error) {
           return new Response(JSON.stringify({ error: 'Failed to create lesson' }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+
+      // Handle AI quiz generation
+      if (actualPath === '/ai-quiz/generate') {
+        try {
+          const body = await req.json()
+          const { courseId, generationType, numberOfQuestions, customText } = body
+          
+          console.log('AI Quiz generation request:', { courseId, generationType, numberOfQuestions })
+          
+          // Generate sample quiz questions based on the request
+          const sampleQuestions = []
+          for (let i = 1; i <= (numberOfQuestions || 5); i++) {
+            sampleQuestions.push({
+              id: i,
+              question: `Sample question ${i} for course ${courseId}`,
+              options: [
+                `Option A for question ${i}`,
+                `Option B for question ${i}`,
+                `Option C for question ${i}`,
+                `Option D for question ${i}`
+              ],
+              correctAnswer: 0,
+              explanation: `Explanation for question ${i}`
+            })
+          }
+          
+          return new Response(JSON.stringify({
+            success: true,
+            quiz: {
+              id: Date.now(),
+              title: `AI Generated Quiz for Course ${courseId}`,
+              description: `Quiz generated using ${generationType}`,
+              questions: sampleQuestions,
+              courseId: courseId,
+              timeLimit: 30,
+              passingScore: 70
+            }
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('AI Quiz generation error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { 
               'Content-Type': 'application/json',
