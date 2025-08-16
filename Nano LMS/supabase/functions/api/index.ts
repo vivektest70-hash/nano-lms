@@ -9,8 +9,13 @@ let courses = [
     title: 'Introduction to Web Development',
     description: 'Learn the basics of HTML, CSS, and JavaScript',
     instructor: 'John Doe',
+    instructor_first_name: 'John',
+    instructor_last_name: 'Doe',
     duration: '8 weeks',
+    duration_minutes: 135,
     level: 'Beginner',
+    difficulty_level: 'Beginner',
+    status: 'published',
     lessons: [
       {
         id: '1',
@@ -40,8 +45,13 @@ let courses = [
     title: 'Advanced React Development',
     description: 'Master React hooks, context, and advanced patterns',
     instructor: 'Jane Smith',
+    instructor_first_name: 'Jane',
+    instructor_last_name: 'Smith',
     duration: '10 weeks',
+    duration_minutes: 285,
     level: 'Advanced',
+    difficulty_level: 'Advanced',
+    status: 'published',
     lessons: [
       {
         id: '4',
@@ -71,8 +81,13 @@ let courses = [
     title: 'Full Stack Development',
     description: 'Build complete web applications with frontend and backend',
     instructor: 'Mike Johnson',
+    instructor_first_name: 'Mike',
+    instructor_last_name: 'Johnson',
     duration: '12 weeks',
+    duration_minutes: 225,
     level: 'Intermediate',
+    difficulty_level: 'Intermediate',
+    status: 'published',
     lessons: [
       {
         id: '7',
@@ -102,8 +117,13 @@ let courses = [
     title: 'Mobile App Development',
     description: 'Create mobile applications with React Native',
     instructor: 'Sarah Wilson',
+    instructor_first_name: 'Sarah',
+    instructor_last_name: 'Wilson',
     duration: '10 weeks',
+    duration_minutes: 225,
     level: 'Advanced',
+    difficulty_level: 'Advanced',
+    status: 'published',
     lessons: [
       {
         id: '10',
