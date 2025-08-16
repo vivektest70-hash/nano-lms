@@ -1005,38 +1005,35 @@ serve(async (req) => {
       if (actualPath === '/ai-quiz/generate') {
         try {
           const body = await req.json()
-          const { courseId, generationType, numberOfQuestions, customText } = body
+          const { courseId, course_id, generationType, numQuestions, numberOfQuestions, customText, content } = body
           
-          console.log('AI Quiz generation request:', { courseId, generationType, numberOfQuestions })
+          // Handle both courseId and course_id for compatibility
+          const actualCourseId = courseId || course_id
+          const actualNumQuestions = numQuestions || numberOfQuestions || 5
+          const actualCustomText = customText || content
+          
+          console.log('AI Quiz generation request:', { actualCourseId, generationType, actualNumQuestions, body })
           
           // Generate sample quiz questions based on the request
           const sampleQuestions = []
-          for (let i = 1; i <= (numberOfQuestions || 5); i++) {
+          for (let i = 1; i <= actualNumQuestions; i++) {
             sampleQuestions.push({
               id: i,
-              question: `Sample question ${i} for course ${courseId}`,
-              options: [
-                `Option A for question ${i}`,
-                `Option B for question ${i}`,
-                `Option C for question ${i}`,
-                `Option D for question ${i}`
-              ],
-              correctAnswer: 0,
+              question: `Sample question ${i} for course ${actualCourseId}`,
+              options: {
+                A: `Option A for question ${i}`,
+                B: `Option B for question ${i}`,
+                C: `Option C for question ${i}`,
+                D: `Option D for question ${i}`
+              },
+              correctAnswer: 'A',
               explanation: `Explanation for question ${i}`
             })
           }
           
           return new Response(JSON.stringify({
             success: true,
-            quiz: {
-              id: Date.now(),
-              title: `AI Generated Quiz for Course ${courseId}`,
-              description: `Quiz generated using ${generationType}`,
-              questions: sampleQuestions,
-              courseId: parseInt(courseId),
-              timeLimit: 30,
-              passingScore: 70
-            }
+            questions: sampleQuestions
           }), {
             headers: { 
               'Content-Type': 'application/json',
@@ -1060,9 +1057,14 @@ serve(async (req) => {
       if (actualPath === '/quizzes') {
         try {
           const body = await req.json()
-          const { title, description, courseId, questions, timeLimit, passingScore } = body
+          const { title, description, courseId, course_id, questions, timeLimit, time_limit_minutes, passingScore, passing_percentage } = body
           
-          console.log('Saving quiz:', { title, courseId, questionsCount: questions?.length })
+          // Handle both courseId and course_id for compatibility
+          const actualCourseId = courseId || course_id
+          const actualTimeLimit = timeLimit || time_limit_minutes || 30
+          const actualPassingScore = passingScore || passing_percentage || 70
+          
+          console.log('Saving quiz:', { title, actualCourseId, questionsCount: questions?.length, body })
           
           // First, create the quiz
           const { data: quiz, error: quizError } = await supabase
@@ -1070,9 +1072,9 @@ serve(async (req) => {
             .insert({
               title: title || 'New Quiz',
               description: description || '',
-              course_id: courseId,
-              time_limit_minutes: timeLimit || 30,
-              passing_score: passingScore || 70
+              course_id: actualCourseId,
+              time_limit_minutes: actualTimeLimit,
+              passing_score: actualPassingScore
             })
             .select()
             .single()
@@ -1092,10 +1094,10 @@ serve(async (req) => {
           if (questions && questions.length > 0) {
             const quizQuestions = questions.map((q, index) => ({
               quiz_id: quiz.id,
-              question: q.question,
+              question: q.question_text || q.question,
               question_type: 'multiple_choice',
               options: q.options,
-              correct_answer: q.correctAnswer.toString(),
+              correct_answer: (q.correct_answer || q.correctAnswer || 0).toString(),
               points: 1,
               order_index: index + 1
             }))
@@ -1402,8 +1404,43 @@ serve(async (req) => {
       }
     }
 
+    // Log unmatched routes for debugging
+    console.log('No route matched for:', { method, actualPath, url: req.url })
+    
     // Default response for unmatched routes
-    return new Response(JSON.stringify({ error: 'Route not found', path: actualPath }), {
+    return new Response(JSON.stringify({ 
+      error: 'Route not found',
+      method,
+      path: actualPath,
+      availableRoutes: [
+        'GET /health',
+        'GET /me',
+        'GET /auth/me', 
+        'GET /courses',
+        'GET /courses/:id',
+        'GET /users',
+        'GET /lessons',
+        'GET /certificates',
+        'GET /leaderboard',
+        'GET /dashboard',
+        'GET /quizzes/courses/:id',
+        'GET /courses/enrollments',
+        'POST /auth/login',
+        'POST /auth/change-password',
+        'POST /courses',
+        'POST /users',
+        'POST /lessons',
+        'POST /ai-quiz/generate',
+        'POST /quizzes',
+        'PUT /courses/:id',
+        'PUT /lessons/:id',
+        'DELETE /courses/:id',
+        'DELETE /lessons/:id',
+        'DELETE /users/:id',
+        'DELETE /certificates',
+        'DELETE /certificates/:id'
+      ]
+    }), {
       status: 404,
       headers: { 
         'Content-Type': 'application/json',
