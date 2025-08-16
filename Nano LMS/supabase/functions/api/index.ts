@@ -1,217 +1,202 @@
+// @public
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from "../_shared/cors.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts'
-import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts'
+import { create } from 'https://deno.land/x/djwt@v2.8/mod.ts'
 
 serve(async (req) => {
-  // Handle CORS preflight requests properly
+  console.log('API function called:', req.method, req.url)
+  
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { 
       status: 200,
       headers: {
-        ...corsHeaders,
+        'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Credentials': 'true',
         'Access-Control-Max-Age': '86400'
       }
     })
   }
 
   try {
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
     // Parse the request
     const { method, url } = req
     const urlObj = new URL(url)
-    const path = urlObj.pathname.replace('/functions/v1/api', '')
+    const fullPath = urlObj.pathname
+    // Remove the function prefix to get the actual path
+    const path = fullPath.replace('/functions/v1/api', '')
     
-    console.log('Request path:', path) // Debug log
+    console.log('Full URL pathname:', fullPath)
+    console.log('Extracted path:', path)
+    console.log('Method:', method)
     
-    // Handle different API routes
-    if (path.startsWith('/auth')) {
-      return handleAuth(req, supabase, path)
-    } else if (path.startsWith('/courses')) {
-      return handleCourses(req, supabase, path)
-    } else if (path.startsWith('/users')) {
-      return handleUsers(req, supabase, path)
-    } else if (path.startsWith('/lessons')) {
-      return handleLessons(req, supabase, path)
-    } else if (path.startsWith('/quizzes')) {
-      return handleQuizzes(req, supabase, path)
-    } else if (path.startsWith('/certificates')) {
-      return handleCertificates(req, supabase, path)
-    } else if (path.startsWith('/user-progress')) {
-      return handleUserProgress(req, supabase, path)
-    } else if (path.startsWith('/upload')) {
-      return handleUpload(req, supabase, path)
-    } else if (path.startsWith('/ai-quiz')) {
-      return handleAIQuiz(req, supabase, path)
-    } else if (path === '/health') {
+    // Debug: check if path starts with /api and fix it
+    let actualPath = path
+    if (path.startsWith('/api/')) {
+      actualPath = path.replace('/api/', '/')
+      console.log('Fixed path:', actualPath)
+    }
+    
+    // Handle health check
+    if (actualPath === '/health') {
       return new Response(JSON.stringify({ status: 'ok' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Credentials': 'true'
+        }
       })
     }
-
-    return new Response(JSON.stringify({ error: 'Route not found', path }), {
-      status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    })
-  }
-})
-
-// JWT secret key
-const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'your-secret-key'
-
-// Authentication handler
-async function handleAuth(req: Request, supabase: any, path: string) {
-  try {
-    const { method } = req
-    // Remove '/auth' prefix from the path
-    const authPath = path.replace('/auth', '')
     
-    console.log('Auth path:', authPath) // Debug log
-
-    if (method === 'POST' && authPath === '/login') {
-      const body = await req.json()
-      const { email, password } = body
-
-      console.log('Login attempt for:', email) // Debug log
-
-      if (!email || !password) {
-        return new Response(JSON.stringify({ error: 'Email and password are required' }), {
-          status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      // Query user from database
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single()
-
-      if (error || !users) {
-        console.log('User not found:', email) // Debug log
-        return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      console.log('User found:', users.email) // Debug log
-
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, users.password_hash)
-      if (!isValidPassword) {
-        console.log('Invalid password for:', email) // Debug log
-        return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
-      }
-
-      console.log('Password verified for:', email) // Debug log
-
-      // Create JWT token
-      const payload = {
-        userId: users.id,
-        email: users.email,
-        role: users.role,
-        work_type: users.work_type
-      }
-
-      const token = await create(
-        { alg: "HS256", typ: "JWT" },
-        payload,
-        JWT_SECRET
-      )
-
-      console.log('Token created for:', email) // Debug log
-
-      return new Response(JSON.stringify({
-        token,
-        user: {
-          id: users.id,
+    // Handle auth login
+    if (actualPath === '/auth/login' && method === 'POST') {
+      console.log('Login endpoint matched!')
+      
+      try {
+        // Create Supabase client
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        const supabase = createClient(supabaseUrl, supabaseServiceKey)
+        
+        // Parse request body
+        const body = await req.json()
+        const { email, password } = body
+        
+        console.log('Login attempt for:', email)
+        
+        if (!email || !password) {
+          return new Response(JSON.stringify({ error: 'Email and password are required' }), {
+            status: 400,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Credentials': 'true'
+            }
+          })
+        }
+        
+        // Query user from database
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .single()
+        
+        if (error || !users) {
+          console.log('User not found:', email)
+          return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+            status: 401,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Credentials': 'true'
+            }
+          })
+        }
+        
+        console.log('User found:', users.email)
+        
+        // Verify password
+        const isValidPassword = await bcrypt.compare(password, users.password_hash)
+        if (!isValidPassword) {
+          console.log('Invalid password for:', email)
+          return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+            status: 401,
+            headers: { 
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Credentials': 'true'
+            }
+          })
+        }
+        
+        console.log('Password verified for:', email)
+        
+        // Create JWT token
+        const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'your-secret-key'
+        const payload = {
+          userId: users.id,
           email: users.email,
-          firstName: users.first_name,
-          lastName: users.last_name,
           role: users.role,
           work_type: users.work_type
         }
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
+        
+        const token = await create(
+          { alg: "HS256", typ: "JWT" },
+          payload,
+          JWT_SECRET
+        )
+        
+        console.log('Token created for:', email)
+        
+        return new Response(JSON.stringify({
+          token,
+          user: {
+            id: users.id,
+            email: users.email,
+            firstName: users.first_name,
+            lastName: users.last_name,
+            role: users.role,
+            work_type: users.work_type
+          }
+        }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+            'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Credentials': 'true'
+          }
+        })
+        
+      } catch (error) {
+        console.log('Login error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+            'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Credentials': 'true'
+          }
+        })
+      }
     }
 
-    return new Response(JSON.stringify({ error: 'Method not allowed', path }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    return new Response(JSON.stringify({ error: 'Route not found', path: actualPath, originalPath: path }), {
+      status: 404,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Credentials': 'true'
+      }
     })
 
   } catch (error) {
-    console.log('Auth error:', error) // Debug log
+    console.log('API function error:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Credentials': 'true'
+      }
     })
   }
-}
-
-// Placeholder handlers for other endpoints
-async function handleCourses(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Courses endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleUsers(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Users endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleLessons(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Lessons endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleQuizzes(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Quizzes endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleCertificates(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Certificates endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleUserProgress(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'User Progress endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleUpload(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'Upload endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
-
-async function handleAIQuiz(req: Request, supabase: any, path: string) {
-  return new Response(JSON.stringify({ message: 'AI Quiz endpoint' }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-  })
-}
+})
