@@ -176,17 +176,42 @@ let certificates = [
 let leaderboard = [
   {
     id: '1',
-    name: 'John Doe',
+    first_name: 'John',
+    last_name: 'Doe',
+    role: 'learner',
+    enrolledCourses: 4,
+    completedCourses: 3,
+    progressPercentage: 85,
+    certificates: 2,
     score: 95,
     rank: 1,
     course: 'Introduction to Web Development'
   },
   {
     id: '2',
-    name: 'Jane Smith',
+    first_name: 'Jane',
+    last_name: 'Smith',
+    role: 'trainer',
+    enrolledCourses: 3,
+    completedCourses: 2,
+    progressPercentage: 78,
+    certificates: 1,
     score: 92,
     rank: 2,
     course: 'Advanced React Development'
+  },
+  {
+    id: '3',
+    first_name: 'Mike',
+    last_name: 'Johnson',
+    role: 'learner',
+    enrolledCourses: 2,
+    completedCourses: 1,
+    progressPercentage: 65,
+    certificates: 1,
+    score: 88,
+    rank: 3,
+    course: 'Full Stack Development'
   }
 ]
 
