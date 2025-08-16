@@ -11,10 +11,19 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "start": "cd backend && npm start"
   },
-  "keywords": ["lms", "learning", "education", "courses"],
+  "keywords": [
+    "lms",
+    "learning",
+    "education",
+    "courses"
+  ],
   "author": "Vivek",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.55.0",
+    "axios": "^1.11.0"
   }
 }
