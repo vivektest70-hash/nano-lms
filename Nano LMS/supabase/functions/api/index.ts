@@ -251,6 +251,16 @@ serve(async (req) => {
     
     // Flexible route handler for any path pattern
     if (method === 'GET') {
+      // Handle any path that contains 'user-progress' (check this first)
+      if (actualPath.includes('user-progress')) {
+        return new Response(JSON.stringify({ progress: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
       // Handle any path that contains 'leaderboard'
       if (actualPath.includes('leaderboard')) {
         return new Response(JSON.stringify({ leaderboard: [] }), {
