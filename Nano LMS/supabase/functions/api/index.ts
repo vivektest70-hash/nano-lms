@@ -410,6 +410,61 @@ serve(async (req) => {
     if (method === 'GET') {
       // Handle any path that contains 'user-progress' (check this first)
       if (actualPath.includes('user-progress')) {
+        // Handle individual course progress (e.g., /user-progress/course/1/comprehensive)
+        if (actualPath.includes('/course/') && actualPath.includes('/comprehensive')) {
+          const courseId = actualPath.match(/\/course\/(\d+)\//)?.[1]
+          const course = courses.find(c => c.id === courseId)
+          
+          if (course) {
+            const courseProgress = {
+              summary: {
+                overallProgress: Math.floor(Math.random() * 100),
+                completedComponents: Math.floor(Math.random() * 5) + 1,
+                totalComponents: 8,
+                completedLessons: Math.floor(Math.random() * 3) + 1,
+                hasQuiz: true,
+                quizPassed: Math.random() > 0.5
+              },
+              lessonProgress: [
+                {
+                  lesson_id: '1',
+                  completed: true,
+                  progress: 100,
+                  lastAccessed: new Date().toISOString()
+                },
+                {
+                  lesson_id: '2',
+                  completed: Math.random() > 0.5,
+                  progress: Math.floor(Math.random() * 100),
+                  lastAccessed: new Date().toISOString()
+                }
+              ],
+              quizProgress: {
+                attempted: Math.random() > 0.5,
+                passed: Math.random() > 0.5,
+                score: Math.floor(Math.random() * 100),
+                lastAttempted: new Date().toISOString()
+              }
+            }
+            
+            return new Response(JSON.stringify(courseProgress), {
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          } else {
+            return new Response(JSON.stringify({ error: 'Course not found' }), {
+              status: 404,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+        }
+        
+        // Handle general user progress
         const userProgress = {
           overallProgress: 75,
           courses: courses.map(course => ({
