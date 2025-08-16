@@ -740,11 +740,60 @@ serve(async (req) => {
           const courseId = actualPath.split('/').pop()
           console.log('Fetching quizzes for course:', courseId)
           
-          // For now, return empty quizzes array
-          // In a real implementation, you would query the quizzes table
+          // Fetch quizzes from database
+          const { data: quizzes, error: quizzesError } = await supabase
+            .from('quizzes')
+            .select('*')
+            .eq('course_id', courseId)
+            .order('created_at', { ascending: false })
+
+          if (quizzesError) {
+            console.error('Error fetching quizzes:', quizzesError)
+            return new Response(JSON.stringify({ error: 'Failed to fetch quizzes' }), {
+              status: 500,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+
+          // Fetch questions for each quiz
+          const quizzesWithQuestions = []
+          for (const quiz of quizzes || []) {
+            const { data: questions, error: questionsError } = await supabase
+              .from('quiz_questions')
+              .select('*')
+              .eq('quiz_id', quiz.id)
+              .order('order_index', { ascending: true })
+
+            if (questionsError) {
+              console.error('Error fetching quiz questions:', questionsError)
+              continue
+            }
+
+            const formattedQuestions = questions?.map(q => ({
+              id: q.id,
+              question: q.question,
+              options: q.options || [],
+              correctAnswer: parseInt(q.correct_answer) || 0,
+              explanation: q.explanation || ''
+            })) || []
+
+            quizzesWithQuestions.push({
+              id: quiz.id,
+              title: quiz.title,
+              description: quiz.description,
+              courseId: quiz.course_id,
+              timeLimit: quiz.time_limit_minutes,
+              passingScore: quiz.passing_score,
+              questions: formattedQuestions
+            })
+          }
+          
           return new Response(JSON.stringify({ 
-            quizzes: [],
-            message: 'No quizzes found for this course'
+            quizzes: quizzesWithQuestions,
+            message: quizzesWithQuestions.length > 0 ? `${quizzesWithQuestions.length} quizzes found` : 'No quizzes found for this course'
           }), {
             headers: { 
               'Content-Type': 'application/json',
@@ -984,7 +1033,7 @@ serve(async (req) => {
               title: `AI Generated Quiz for Course ${courseId}`,
               description: `Quiz generated using ${generationType}`,
               questions: sampleQuestions,
-              courseId: courseId,
+              courseId: parseInt(courseId),
               timeLimit: 30,
               passingScore: 70
             }
@@ -997,6 +1046,99 @@ serve(async (req) => {
           
         } catch (error) {
           console.log('AI Quiz generation error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+
+      // Handle quiz saving
+      if (actualPath === '/quizzes') {
+        try {
+          const body = await req.json()
+          const { title, description, courseId, questions, timeLimit, passingScore } = body
+          
+          console.log('Saving quiz:', { title, courseId, questionsCount: questions?.length })
+          
+          // First, create the quiz
+          const { data: quiz, error: quizError } = await supabase
+            .from('quizzes')
+            .insert({
+              title: title || 'New Quiz',
+              description: description || '',
+              course_id: courseId,
+              time_limit_minutes: timeLimit || 30,
+              passing_score: passingScore || 70
+            })
+            .select()
+            .single()
+
+          if (quizError) {
+            console.error('Error creating quiz:', quizError)
+            return new Response(JSON.stringify({ error: 'Failed to create quiz' }), {
+              status: 500,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+
+          // Then, create the quiz questions
+          if (questions && questions.length > 0) {
+            const quizQuestions = questions.map((q, index) => ({
+              quiz_id: quiz.id,
+              question: q.question,
+              question_type: 'multiple_choice',
+              options: q.options,
+              correct_answer: q.correctAnswer.toString(),
+              points: 1,
+              order_index: index + 1
+            }))
+
+            const { error: questionsError } = await supabase
+              .from('quiz_questions')
+              .insert(quizQuestions)
+
+            if (questionsError) {
+              console.error('Error creating quiz questions:', questionsError)
+              // Delete the quiz if questions fail
+              await supabase.from('quizzes').delete().eq('id', quiz.id)
+              return new Response(JSON.stringify({ error: 'Failed to create quiz questions' }), {
+                status: 500,
+                headers: { 
+                  'Content-Type': 'application/json',
+                  ...corsHeaders
+                }
+              })
+            }
+          }
+
+          return new Response(JSON.stringify({ 
+            message: 'Quiz saved successfully',
+            quiz: {
+              id: quiz.id,
+              title: quiz.title,
+              description: quiz.description,
+              courseId: quiz.course_id,
+              timeLimit: quiz.time_limit_minutes,
+              passingScore: quiz.passing_score,
+              questions: questions || []
+            }
+          }), {
+            status: 201,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Quiz save error:', error)
           return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { 
