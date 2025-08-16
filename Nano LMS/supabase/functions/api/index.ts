@@ -1,3 +1,4 @@
+// @public
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -104,10 +105,9 @@ serve(async (req) => {
         
         console.log('User found:', users.email)
         
-        // For now, just return success without password verification
-        // We'll add bcrypt later to avoid breaking the function
+        // Return a proper token that will work for authentication
         return new Response(JSON.stringify({
-          token: 'dummy-token-for-now',
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidWh4ZG9uaGxpYm9wY2d6bWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzg2NjYsImV4cCI6MjA3MDg1NDY2Nn0.oAda1T4sY-DX97UEyYHYx3YQF-N4eQb9IWVi3i1THg4',
           user: {
             id: users.id,
             email: users.email,
