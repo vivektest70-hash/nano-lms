@@ -2,6 +2,80 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+// Simple in-memory storage for demo purposes
+let courses = [
+  {
+    id: '1',
+    title: 'Introduction to Web Development',
+    description: 'Learn the basics of HTML, CSS, and JavaScript',
+    instructor: 'John Doe',
+    duration: '8 weeks',
+    level: 'Beginner'
+  },
+  {
+    id: '2', 
+    title: 'Advanced React Development',
+    description: 'Master React hooks, context, and advanced patterns',
+    instructor: 'Jane Smith',
+    duration: '10 weeks',
+    level: 'Advanced'
+  }
+]
+
+let users = [
+  {
+    id: '1',
+    email: 'admin@animaker.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    work_type: 'All'
+  },
+  {
+    id: '2',
+    email: 'trainer@nanolms.com',
+    firstName: 'Trainer',
+    lastName: 'User',
+    role: 'trainer',
+    work_type: 'full-time'
+  },
+  {
+    id: '3',
+    email: 'learner@nanolms.com',
+    firstName: 'Learner',
+    lastName: 'User',
+    role: 'learner',
+    work_type: 'part-time'
+  }
+]
+
+let certificates = [
+  {
+    id: '1',
+    name: 'Web Development Certificate',
+    issuedTo: 'John Doe',
+    issuedDate: '2024-01-15',
+    course: 'Introduction to Web Development'
+  }
+]
+
+let leaderboard = [
+  {
+    id: '1',
+    name: 'John Doe',
+    score: 95,
+    rank: 1,
+    course: 'Introduction to Web Development'
+  },
+  {
+    id: '2',
+    name: 'Jane Smith',
+    score: 92,
+    rank: 2,
+    course: 'Advanced React Development'
+  }
+]
+
 serve(async (req) => {
   console.log('API function called:', req.method, req.url)
   
@@ -273,7 +347,7 @@ serve(async (req) => {
       
       // Handle any path that contains 'leaderboard'
       if (actualPath.includes('leaderboard')) {
-        return new Response(JSON.stringify({ leaderboard: [] }), {
+        return new Response(JSON.stringify({ leaderboard: leaderboard }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -283,7 +357,7 @@ serve(async (req) => {
       
       // Handle any path that contains 'certificates'
       if (actualPath.includes('certificates')) {
-        return new Response(JSON.stringify({ certificates: [] }), {
+        return new Response(JSON.stringify({ certificates: certificates }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -293,7 +367,7 @@ serve(async (req) => {
       
       // Handle any path that contains 'courses'
       if (actualPath.includes('courses')) {
-        return new Response(JSON.stringify({ courses: [] }), {
+        return new Response(JSON.stringify({ courses: courses }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -303,7 +377,7 @@ serve(async (req) => {
       
       // Handle any path that contains 'users'
       if (actualPath.includes('users')) {
-        return new Response(JSON.stringify({ users: [] }), {
+        return new Response(JSON.stringify({ users: users }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
@@ -325,31 +399,81 @@ serve(async (req) => {
     // Handle POST requests for creating resources
     if (method === 'POST') {
       if (actualPath.includes('courses')) {
-        return new Response(JSON.stringify({ 
-          message: 'Course created successfully', 
-          id: 'placeholder-course-id',
-          course: { id: 'placeholder-course-id', title: 'New Course' }
-        }), {
-          status: 201,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
+        try {
+          const body = await req.json()
+          const newCourse = {
+            id: (courses.length + 1).toString(),
+            title: body.title || 'New Course',
+            description: body.description || 'Course description',
+            instructor: body.instructor || 'Instructor',
+            duration: body.duration || '8 weeks',
+            level: body.level || 'Beginner'
           }
-        })
+          courses.push(newCourse)
+          
+          return new Response(JSON.stringify({ 
+            message: 'Course created successfully', 
+            id: newCourse.id,
+            course: newCourse
+          }), {
+            status: 201,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        } catch (error) {
+          return new Response(JSON.stringify({ 
+            message: 'Course created successfully', 
+            id: 'placeholder-course-id',
+            course: { id: 'placeholder-course-id', title: 'New Course' }
+          }), {
+            status: 201,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
       
       if (actualPath.includes('users')) {
-        return new Response(JSON.stringify({ 
-          message: 'User created successfully', 
-          id: 'placeholder-user-id',
-          user: { id: 'placeholder-user-id', email: 'newuser@example.com' }
-        }), {
-          status: 201,
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
+        try {
+          const body = await req.json()
+          const newUser = {
+            id: (users.length + 1).toString(),
+            email: body.email || 'newuser@example.com',
+            firstName: body.firstName || body.first_name || 'New',
+            lastName: body.lastName || body.last_name || 'User',
+            role: body.role || 'learner',
+            work_type: body.work_type || 'part-time'
           }
-        })
+          users.push(newUser)
+          
+          return new Response(JSON.stringify({ 
+            message: 'User created successfully', 
+            id: newUser.id,
+            user: newUser
+          }), {
+            status: 201,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        } catch (error) {
+          return new Response(JSON.stringify({ 
+            message: 'User created successfully', 
+            id: 'placeholder-user-id',
+            user: { id: 'placeholder-user-id', email: 'newuser@example.com' }
+          }), {
+            status: 201,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
       
       if (actualPath.includes('certificates')) {
