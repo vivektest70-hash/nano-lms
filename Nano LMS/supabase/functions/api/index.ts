@@ -134,8 +134,71 @@ serve(async (req) => {
       }
     }
 
+    // Handle /me endpoint for user authentication
+    if (actualPath === '/me' && method === 'GET') {
+      try {
+        // Get the authorization header
+        const authHeader = req.headers.get('authorization')
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+          return new Response(JSON.stringify({ error: 'Missing or invalid authorization header' }), {
+            status: 401,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+        
+        // For now, return a placeholder user response
+        // In a real implementation, you would verify the JWT token here
+        return new Response(JSON.stringify({
+          user: {
+            id: 1,
+            email: 'admin@nanolms.com',
+            firstName: 'Admin',
+            lastName: 'User',
+            role: 'admin',
+            work_type: 'full-time'
+          }
+        }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+        
+      } catch (error) {
+        console.log('Me endpoint error:', error)
+        return new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
+    // Helper function to check authentication
+    const checkAuth = (req) => {
+      const authHeader = req.headers.get('authorization')
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return false
+      }
+      return true
+    }
+    
     // Handle other endpoints with placeholder responses
     if (actualPath === '/courses' && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ courses: [] }), {
         headers: { 
           'Content-Type': 'application/json',
@@ -145,6 +208,15 @@ serve(async (req) => {
     }
     
     if (actualPath === '/users' && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ users: [] }), {
         headers: { 
           'Content-Type': 'application/json',
@@ -154,6 +226,15 @@ serve(async (req) => {
     }
     
     if (actualPath === '/pending-approval' && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ pendingUsers: [] }), {
         headers: { 
           'Content-Type': 'application/json',
@@ -163,6 +244,15 @@ serve(async (req) => {
     }
     
     if (actualPath === '/certificates' && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ certificates: [] }), {
         headers: { 
           'Content-Type': 'application/json',
@@ -172,6 +262,15 @@ serve(async (req) => {
     }
     
     if (actualPath === '/leaderboard' && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ leaderboard: [] }), {
         headers: { 
           'Content-Type': 'application/json',
@@ -181,6 +280,15 @@ serve(async (req) => {
     }
     
     if (actualPath.startsWith('/courses?') && method === 'GET') {
+      if (!checkAuth(req)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
       return new Response(JSON.stringify({ courses: [] }), {
         headers: { 
           'Content-Type': 'application/json',
