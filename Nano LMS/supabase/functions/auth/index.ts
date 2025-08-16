@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import bcrypt from 'https://deno.land/x/bcrypt@v0.4.1/mod.ts'
 import { create } from 'https://deno.land/x/djwt@v2.8/mod.ts'
 
+// This function should be public (no JWT required)
 serve(async (req) => {
   // Handle CORS preflight requests properly
   if (req.method === 'OPTIONS') {
@@ -11,8 +12,6 @@ serve(async (req) => {
       status: 200,
       headers: {
         ...corsHeaders,
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400'
       }
     })
