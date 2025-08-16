@@ -49,6 +49,9 @@ serve(async (req) => {
       actualPath = path
     }
     
+    // Handle nested routes by checking for common patterns
+    console.log('Processing path:', actualPath)
+    
     // Handle health check
     if (actualPath === '/health') {
       return new Response(JSON.stringify({ status: 'ok' }), {
@@ -220,6 +223,25 @@ serve(async (req) => {
     
     if (actualPath === '/pending-approval' && method === 'GET') {
       return new Response(JSON.stringify({ pendingUsers: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    // Handle nested routes
+    if (actualPath === '/users/pending-approval' && method === 'GET') {
+      return new Response(JSON.stringify({ pendingUsers: [] }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      })
+    }
+    
+    if (actualPath === '/courses/all' && method === 'GET') {
+      return new Response(JSON.stringify({ courses: [] }), {
         headers: { 
           'Content-Type': 'application/json',
           ...corsHeaders
