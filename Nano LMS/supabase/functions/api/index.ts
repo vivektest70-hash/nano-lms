@@ -261,6 +261,16 @@ serve(async (req) => {
         })
       }
       
+      // Handle any path that contains 'all' (for courses listing)
+      if (actualPath.includes('all')) {
+        return new Response(JSON.stringify({ courses: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
       // Handle any path that contains 'leaderboard'
       if (actualPath.includes('leaderboard')) {
         return new Response(JSON.stringify({ leaderboard: [] }), {
