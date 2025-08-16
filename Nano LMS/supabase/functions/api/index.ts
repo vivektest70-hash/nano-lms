@@ -988,6 +988,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ certificates: certificates }), {
         headers: { 
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           ...corsHeaders
         }
       })
@@ -1002,6 +1005,9 @@ serve(async (req) => {
         return new Response(JSON.stringify({ certificate: certificate }), {
           headers: { 
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
             ...corsHeaders
           }
         })
