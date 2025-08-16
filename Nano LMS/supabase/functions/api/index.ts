@@ -327,7 +327,7 @@ serve(async (req) => {
     }
     
     // Handle change password
-    if (actualPath === '/auth/change-password' && method === 'POST') {
+    if (actualPath === '/auth/change-password' && (method === 'POST' || method === 'PUT')) {
       console.log('Change password endpoint matched!')
       
       try {
