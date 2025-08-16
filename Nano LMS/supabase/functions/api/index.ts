@@ -168,8 +168,28 @@ let certificates = [
     id: '1',
     name: 'Web Development Certificate',
     issuedTo: 'John Doe',
-    issuedDate: '2024-01-15',
-    course: 'Introduction to Web Development'
+    issuedDate: '2024-01-15T00:00:00.000Z',
+    course: 'Introduction to Web Development',
+    category: 'Web Development',
+    status: 'issued'
+  },
+  {
+    id: '2',
+    name: 'React Development Certificate',
+    issuedTo: 'Jane Smith',
+    issuedDate: '2024-02-20T00:00:00.000Z',
+    course: 'Advanced React Development',
+    category: 'Frontend Development',
+    status: 'issued'
+  },
+  {
+    id: '3',
+    name: 'Full Stack Certificate',
+    issuedTo: 'Mike Johnson',
+    issuedDate: '2024-03-10T00:00:00.000Z',
+    course: 'Full Stack Development',
+    category: 'Full Stack Development',
+    status: 'issued'
   }
 ]
 
@@ -971,6 +991,64 @@ serve(async (req) => {
           ...corsHeaders
         }
       })
+    }
+    
+    // Handle individual certificate requests (e.g., /certificates/1)
+    if (actualPath.match(/^\/certificates\/\d+$/) && method === 'GET') {
+      const certificateId = actualPath.split('/').pop()
+      const certificate = certificates.find(c => c.id === certificateId)
+      
+      if (certificate) {
+        return new Response(JSON.stringify({ certificate: certificate }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      } else {
+        return new Response(JSON.stringify({ error: 'Certificate not found' }), {
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
+    // Handle certificate download (e.g., /certificates/1/download)
+    if (actualPath.match(/^\/certificates\/\d+\/download$/) && method === 'GET') {
+      const certificateId = actualPath.split('/')[2] // Get ID from /certificates/1/download
+      const certificate = certificates.find(c => c.id === certificateId)
+      
+      if (certificate) {
+        // Generate a simple PDF-like response for demo purposes
+        const pdfContent = `Certificate of Completion
+        
+This is to certify that ${certificate.issuedTo} has successfully completed the course "${certificate.course}".
+
+Certificate ID: ${certificate.id}
+Issued Date: ${new Date(certificate.issuedDate).toLocaleDateString()}
+Category: ${certificate.category}
+
+This certificate is issued by Nano LMS.`
+        
+        return new Response(pdfContent, {
+          headers: { 
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="certificate-${certificateId}.pdf"`,
+            ...corsHeaders
+          }
+        })
+      } else {
+        return new Response(JSON.stringify({ error: 'Certificate not found' }), {
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
     }
     
     if (actualPath === '/leaderboard' && method === 'GET') {
