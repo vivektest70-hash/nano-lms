@@ -32,23 +32,23 @@ serve(async (req) => {
     
     // Handle different API routes
     if (path.startsWith('/auth')) {
-      return handleAuth(req, supabase)
+      return handleAuth(req, supabase, path)
     } else if (path.startsWith('/courses')) {
-      return handleCourses(req, supabase)
+      return handleCourses(req, supabase, path)
     } else if (path.startsWith('/users')) {
-      return handleUsers(req, supabase)
+      return handleUsers(req, supabase, path)
     } else if (path.startsWith('/lessons')) {
-      return handleLessons(req, supabase)
+      return handleLessons(req, supabase, path)
     } else if (path.startsWith('/quizzes')) {
-      return handleQuizzes(req, supabase)
+      return handleQuizzes(req, supabase, path)
     } else if (path.startsWith('/certificates')) {
-      return handleCertificates(req, supabase)
+      return handleCertificates(req, supabase, path)
     } else if (path.startsWith('/user-progress')) {
-      return handleUserProgress(req, supabase)
+      return handleUserProgress(req, supabase, path)
     } else if (path.startsWith('/upload')) {
-      return handleUpload(req, supabase)
+      return handleUpload(req, supabase, path)
     } else if (path.startsWith('/ai-quiz')) {
-      return handleAIQuiz(req, supabase)
+      return handleAIQuiz(req, supabase, path)
     } else if (path === '/health') {
       return new Response(JSON.stringify({ status: 'ok' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -72,15 +72,15 @@ serve(async (req) => {
 const JWT_SECRET = Deno.env.get('JWT_SECRET') || 'your-secret-key'
 
 // Authentication handler
-async function handleAuth(req: Request, supabase: any) {
+async function handleAuth(req: Request, supabase: any, path: string) {
   try {
     const { method } = req
-    const url = new URL(req.url)
-    const path = url.pathname.replace('/functions/v1/api/auth', '')
+    // Remove '/auth' prefix from the path
+    const authPath = path.replace('/auth', '')
     
-    console.log('Auth path:', path) // Debug log
+    console.log('Auth path:', authPath) // Debug log
 
-    if (method === 'POST' && path === '/login') {
+    if (method === 'POST' && authPath === '/login') {
       const body = await req.json()
       const { email, password } = body
 
@@ -168,49 +168,49 @@ async function handleAuth(req: Request, supabase: any) {
 }
 
 // Placeholder handlers for other endpoints
-async function handleCourses(req: Request, supabase: any) {
+async function handleCourses(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Courses endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleUsers(req: Request, supabase: any) {
+async function handleUsers(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Users endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleLessons(req: Request, supabase: any) {
+async function handleLessons(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Lessons endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleQuizzes(req: Request, supabase: any) {
+async function handleQuizzes(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Quizzes endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleCertificates(req: Request, supabase: any) {
+async function handleCertificates(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Certificates endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleUserProgress(req: Request, supabase: any) {
+async function handleUserProgress(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'User Progress endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleUpload(req: Request, supabase: any) {
+async function handleUpload(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'Upload endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
 }
 
-async function handleAIQuiz(req: Request, supabase: any) {
+async function handleAIQuiz(req: Request, supabase: any, path: string) {
   return new Response(JSON.stringify({ message: 'AI Quiz endpoint' }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   })
