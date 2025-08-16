@@ -10,7 +10,30 @@ let courses = [
     description: 'Learn the basics of HTML, CSS, and JavaScript',
     instructor: 'John Doe',
     duration: '8 weeks',
-    level: 'Beginner'
+    level: 'Beginner',
+    lessons: [
+      {
+        id: '1',
+        title: 'Introduction to HTML',
+        content: 'Learn the basics of HTML markup',
+        duration_minutes: 30,
+        order: 1
+      },
+      {
+        id: '2',
+        title: 'CSS Fundamentals',
+        content: 'Learn CSS styling and layout',
+        duration_minutes: 45,
+        order: 2
+      },
+      {
+        id: '3',
+        title: 'JavaScript Basics',
+        content: 'Introduction to JavaScript programming',
+        duration_minutes: 60,
+        order: 3
+      }
+    ]
   },
   {
     id: '2', 
@@ -18,7 +41,30 @@ let courses = [
     description: 'Master React hooks, context, and advanced patterns',
     instructor: 'Jane Smith',
     duration: '10 weeks',
-    level: 'Advanced'
+    level: 'Advanced',
+    lessons: [
+      {
+        id: '4',
+        title: 'React Hooks Deep Dive',
+        content: 'Master useState, useEffect, and custom hooks',
+        duration_minutes: 90,
+        order: 1
+      },
+      {
+        id: '5',
+        title: 'Context API',
+        content: 'Learn React Context for state management',
+        duration_minutes: 75,
+        order: 2
+      },
+      {
+        id: '6',
+        title: 'Advanced Patterns',
+        content: 'Advanced React patterns and best practices',
+        duration_minutes: 120,
+        order: 3
+      }
+    ]
   }
 ]
 
@@ -341,6 +387,48 @@ serve(async (req) => {
       }
     }
     
+    // Handle user details with more comprehensive data
+    if (actualPath.match(/^\/users\/\d+\/details$/) && method === 'GET') {
+      const userId = actualPath.split('/')[2] // Get user ID from /users/1/details
+      const user = users.find(u => u.id === userId)
+      
+      if (user) {
+        const userDetails = {
+          ...user,
+          enrollments: courses.map(course => ({
+            id: Math.floor(Math.random() * 1000),
+            courseId: course.id,
+            courseTitle: course.title,
+            enrolledAt: new Date().toISOString(),
+            progress: Math.floor(Math.random() * 100),
+            completed: Math.random() > 0.5
+          })),
+          certificates: certificates.filter(cert => cert.issuedTo === `${user.firstName} ${user.lastName}`),
+          stats: {
+            totalEnrollments: courses.length,
+            completedCourses: Math.floor(courses.length * 0.6),
+            averageScore: Math.floor(Math.random() * 30) + 70,
+            certificatesEarned: certificates.filter(cert => cert.issuedTo === `${user.firstName} ${user.lastName}`).length
+          }
+        }
+        
+        return new Response(JSON.stringify({ user: userDetails }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      } else {
+        return new Response(JSON.stringify({ error: 'User not found' }), {
+          status: 404,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
     // Handle dashboard data
     if (actualPath === '/dashboard' && method === 'GET') {
       const dashboardData = {
@@ -550,6 +638,24 @@ serve(async (req) => {
         }))
         
         return new Response(JSON.stringify({ enrollments: enrollments }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle lessons
+      if (actualPath.includes('lessons')) {
+        const allLessons = courses.flatMap(course => 
+          course.lessons.map(lesson => ({
+            ...lesson,
+            courseId: course.id,
+            courseTitle: course.title
+          }))
+        )
+        
+        return new Response(JSON.stringify({ lessons: allLessons }), {
           headers: { 
             'Content-Type': 'application/json',
             ...corsHeaders
