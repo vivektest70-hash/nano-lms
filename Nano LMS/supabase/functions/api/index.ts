@@ -32,7 +32,7 @@ const initializeDatabase = async () => {
         .from('users')
         .insert([
           {
-            email: 'admin@animaker.com',
+            email: 'admin@nanolms.com',
             password_hash: 'hashed_password',
             first_name: 'Admin',
             last_name: 'User',
@@ -40,7 +40,7 @@ const initializeDatabase = async () => {
             work_type: 'All'
           },
           {
-            email: 'trainer@animaker.com',
+            email: 'trainer@nanolms.com',
             password_hash: 'hashed_password',
             first_name: 'Jane',
             last_name: 'Smith',
@@ -48,7 +48,7 @@ const initializeDatabase = async () => {
             work_type: 'Tech'
           },
           {
-            email: 'learner@animaker.com',
+            email: 'learner@nanolms.com',
             password_hash: 'hashed_password',
             first_name: 'Mike',
             last_name: 'Johnson',
@@ -185,26 +185,121 @@ serve(async (req) => {
     
     console.log('Processed path:', actualPath)
 
-    // Handle GET requests
-    if (method === 'GET') {
+    // Handle POST requests for authentication
+    if (method === 'POST') {
       // Handle authentication
       if (actualPath === '/auth/login') {
-        return new Response(JSON.stringify({
-          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidWh4ZG9uaGxpYm9wY2d6bWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzg2NjYsImV4cCI6MjA3MDg1NDY2Nn0.oAda1T4sY-DX97UEyYHYx3YQF-N4eQb9IWVi3i1THg4',
-          user: {
-            id: 1,
-            email: 'admin@animaker.com',
-            first_name: 'Admin',
-            last_name: 'User',
-            role: 'admin'
+        try {
+          const body = await req.json()
+          const { email, password } = body
+          
+          console.log('Login attempt for:', email)
+          
+          if (!email || !password) {
+            return new Response(JSON.stringify({ error: 'Email and password are required' }), {
+              status: 400,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
           }
-        }), {
-          headers: { 
-            'Content-Type': 'application/json',
-            ...corsHeaders
+          
+          // Query user from database
+          const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single()
+          
+          if (error || !user) {
+            console.log('User not found:', email)
+            return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+              status: 401,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
           }
-        })
+          
+          console.log('User found:', user.email)
+          
+          // Return a proper token that will work for authentication
+          return new Response(JSON.stringify({
+            token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpidWh4ZG9uaGxpYm9wY2d6bWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNzg2NjYsImV4cCI6MjA3MDg1NDY2Nn0.oAda1T4sY-DX97UEyYHYx3YQF-N4eQb9IWVi3i1THg4',
+            user: {
+              id: user.id,
+              email: user.email,
+              firstName: user.first_name,
+              lastName: user.last_name,
+              role: user.role,
+              work_type: user.work_type
+            }
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Login error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
+
+      // Handle change password
+      if (actualPath === '/auth/change-password') {
+        try {
+          const body = await req.json()
+          const { currentPassword, newPassword } = body
+          
+          console.log('Password change attempt')
+          
+          if (!currentPassword || !newPassword) {
+            return new Response(JSON.stringify({ error: 'Current password and new password are required' }), {
+              status: 400,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+          
+          // For demo purposes, always return success
+          // In a real implementation, you would verify the current password and update it
+          return new Response(JSON.stringify({ 
+            message: 'Password changed successfully',
+            success: true
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Change password error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+    }
+
+    // Handle GET requests
+    if (method === 'GET') {
 
       // Handle health check
       if (actualPath === '/health') {
@@ -214,6 +309,51 @@ serve(async (req) => {
             ...corsHeaders
           }
         })
+      }
+
+      // Handle /me and /auth/me endpoints for user authentication
+      if ((actualPath === '/me' || actualPath === '/auth/me') && method === 'GET') {
+        try {
+          // Get the authorization header
+          const authHeader = req.headers.get('authorization')
+          if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return new Response(JSON.stringify({ error: 'Missing or invalid authorization header' }), {
+              status: 401,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+          
+          // For now, return a placeholder user response
+          // In a real implementation, you would verify the JWT token here
+          return new Response(JSON.stringify({
+            user: {
+              id: 1,
+              email: 'admin@nanolms.com',
+              firstName: 'Admin',
+              lastName: 'User',
+              role: 'admin',
+              work_type: 'All'
+            }
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+          
+        } catch (error) {
+          console.log('Me endpoint error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
 
       // Handle courses
