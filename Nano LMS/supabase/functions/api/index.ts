@@ -813,6 +813,8 @@ serve(async (req) => {
         })
       }
       
+
+      
       // Handle any path that contains 'pending'
       if (actualPath.includes('pending')) {
         return new Response(JSON.stringify({ pendingUsers: [] }), {
@@ -958,6 +960,98 @@ serve(async (req) => {
             ...corsHeaders
           }
         })
+      }
+    }
+    
+    // Handle lesson deletion (e.g., DELETE /lessons/1 or DELETE /courses/1/lessons/1)
+    if (actualPath.includes('lessons') && method === 'DELETE') {
+      console.log('Lesson deletion request:', actualPath)
+      
+      // Handle DELETE /lessons/:id
+      if (actualPath.match(/^\/lessons\/\d+$/)) {
+        const lessonId = actualPath.split('/')[2]
+        console.log('Deleting lesson with ID:', lessonId)
+        
+        let deleted = false
+        for (const course of courses) {
+          const lessonIndex = course.lessons.findIndex(lesson => lesson.id === lessonId)
+          if (lessonIndex !== -1) {
+            course.lessons.splice(lessonIndex, 1)
+            deleted = true
+            console.log('Lesson deleted from course:', course.title)
+            break
+          }
+        }
+        
+        if (deleted) {
+          return new Response(JSON.stringify({ 
+            message: 'Lesson deleted successfully',
+            lessonId: lessonId
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0',
+              ...corsHeaders
+            }
+          })
+        } else {
+          return new Response(JSON.stringify({ error: 'Lesson not found' }), {
+            status: 404,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+      
+      // Handle DELETE /courses/:courseId/lessons/:lessonId
+      if (actualPath.match(/^\/courses\/\d+\/lessons\/\d+$/)) {
+        const pathParts = actualPath.split('/')
+        const courseId = pathParts[2]
+        const lessonId = pathParts[4]
+        console.log('Deleting lesson', lessonId, 'from course', courseId)
+        
+        const course = courses.find(c => c.id === courseId)
+        if (course) {
+          const lessonIndex = course.lessons.findIndex(lesson => lesson.id === lessonId)
+          if (lessonIndex !== -1) {
+            course.lessons.splice(lessonIndex, 1)
+            console.log('Lesson deleted from course:', course.title)
+            
+            return new Response(JSON.stringify({ 
+              message: 'Lesson deleted successfully',
+              courseId: courseId,
+              lessonId: lessonId
+            }), {
+              headers: { 
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                ...corsHeaders
+              }
+            })
+          } else {
+            return new Response(JSON.stringify({ error: 'Lesson not found in course' }), {
+              status: 404,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+        } else {
+          return new Response(JSON.stringify({ error: 'Course not found' }), {
+            status: 404,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
     }
     
