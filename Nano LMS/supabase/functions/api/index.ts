@@ -322,6 +322,106 @@ serve(async (req) => {
       }
     }
     
+    // Handle POST requests for creating resources
+    if (method === 'POST') {
+      if (actualPath.includes('courses')) {
+        return new Response(JSON.stringify({ 
+          message: 'Course created successfully', 
+          id: 'placeholder-course-id',
+          course: { id: 'placeholder-course-id', title: 'New Course' }
+        }), {
+          status: 201,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      if (actualPath.includes('users')) {
+        return new Response(JSON.stringify({ 
+          message: 'User created successfully', 
+          id: 'placeholder-user-id',
+          user: { id: 'placeholder-user-id', email: 'newuser@example.com' }
+        }), {
+          status: 201,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      if (actualPath.includes('certificates')) {
+        return new Response(JSON.stringify({ 
+          message: 'Certificate created successfully', 
+          id: 'placeholder-certificate-id'
+        }), {
+          status: 201,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      if (actualPath.includes('lessons')) {
+        return new Response(JSON.stringify({ 
+          message: 'Lesson created successfully', 
+          id: 'placeholder-lesson-id'
+        }), {
+          status: 201,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      if (actualPath.includes('quizzes')) {
+        return new Response(JSON.stringify({ 
+          message: 'Quiz created successfully', 
+          id: 'placeholder-quiz-id'
+        }), {
+          status: 201,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
+    // Handle PUT requests for updating resources
+    if (method === 'PUT') {
+      if (actualPath.includes('courses') || actualPath.includes('users') || actualPath.includes('lessons') || actualPath.includes('quizzes')) {
+        return new Response(JSON.stringify({ 
+          message: 'Resource updated successfully'
+        }), {
+          status: 200,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
+    // Handle DELETE requests for deleting resources
+    if (method === 'DELETE') {
+      if (actualPath.includes('courses') || actualPath.includes('users') || actualPath.includes('lessons') || actualPath.includes('quizzes')) {
+        return new Response(JSON.stringify({ 
+          message: 'Resource deleted successfully'
+        }), {
+          status: 200,
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
     if (actualPath === '/certificates' && method === 'GET') {
       return new Response(JSON.stringify({ certificates: [] }), {
         headers: { 
