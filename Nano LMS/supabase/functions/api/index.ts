@@ -183,35 +183,7 @@ let users = [
   }
 ]
 
-let certificates = [
-  {
-    id: '1',
-    name: 'Web Development Certificate',
-    issuedTo: 'John Doe',
-    issuedDate: '2024-01-15T00:00:00.000Z',
-    course: 'Introduction to Web Development',
-    category: 'Web Development',
-    status: 'issued'
-  },
-  {
-    id: '2',
-    name: 'React Development Certificate',
-    issuedTo: 'Jane Smith',
-    issuedDate: '2024-02-20T00:00:00.000Z',
-    course: 'Advanced React Development',
-    category: 'Frontend Development',
-    status: 'issued'
-  },
-  {
-    id: '3',
-    name: 'Full Stack Certificate',
-    issuedTo: 'Mike Johnson',
-    issuedDate: '2024-03-10T00:00:00.000Z',
-    course: 'Full Stack Development',
-    category: 'Full Stack Development',
-    status: 'issued'
-  }
-]
+let certificates = []
 
 let leaderboard = [
   {
@@ -1142,6 +1114,54 @@ This certificate is issued by Nano LMS.`
             ...corsHeaders
           }
         })
+      }
+    }
+    
+    // Handle certificate deletion (e.g., DELETE /certificates/1 or DELETE /certificates)
+    if (actualPath.includes('certificates') && method === 'DELETE') {
+      if (actualPath === '/certificates') {
+        // Delete all certificates
+        certificates = []
+        return new Response(JSON.stringify({ 
+          message: 'All certificates deleted successfully',
+          certificates: []
+        }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            ...corsHeaders
+          }
+        })
+      } else if (actualPath.match(/^\/certificates\/\d+$/)) {
+        // Delete specific certificate
+        const certificateId = actualPath.split('/')[2]
+        const certificateIndex = certificates.findIndex(c => c.id === certificateId)
+        
+        if (certificateIndex !== -1) {
+          certificates.splice(certificateIndex, 1)
+          return new Response(JSON.stringify({ 
+            message: 'Certificate deleted successfully',
+            certificates: certificates
+          }), {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0',
+              ...corsHeaders
+            }
+          })
+        } else {
+          return new Response(JSON.stringify({ error: 'Certificate not found' }), {
+            status: 404,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
       }
     }
     
