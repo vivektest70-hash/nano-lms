@@ -950,13 +950,154 @@ serve(async (req) => {
     
     // Handle PUT requests for updating resources
     if (method === 'PUT') {
-      if (actualPath.includes('courses') || actualPath.includes('users') || actualPath.includes('lessons') || actualPath.includes('quizzes')) {
+      // Handle course updates (e.g., PUT /courses/1)
+      if (actualPath.match(/^\/courses\/\d+$/)) {
+        try {
+          const courseId = actualPath.split('/')[2]
+          const body = await req.json()
+          console.log('Updating course:', courseId, 'with data:', body)
+          
+          const course = courses.find(c => c.id === courseId)
+          if (course) {
+            // Update course fields
+            course.title = body.title || course.title
+            course.description = body.description || course.description
+            course.instructor = body.instructor || course.instructor
+            course.instructor_first_name = body.instructor_first_name || course.instructor_first_name
+            course.instructor_last_name = body.instructor_last_name || course.instructor_last_name
+            course.duration = body.duration || course.duration
+            course.duration_minutes = body.durationMinutes || body.duration_minutes || course.duration_minutes
+            course.level = body.difficultyLevel || body.level || course.level
+            course.difficulty_level = body.difficultyLevel || body.difficulty_level || course.difficulty_level
+            course.status = body.isPublished ? 'published' : 'draft'
+            
+            console.log('Course updated successfully:', course.title)
+            
+            return new Response(JSON.stringify({ 
+              message: 'Course updated successfully',
+              course: course
+            }), {
+              status: 200,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                ...corsHeaders
+              }
+            })
+          } else {
+            return new Response(JSON.stringify({ error: 'Course not found' }), {
+              status: 404,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+        } catch (error) {
+          console.log('Course update error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+      
+      // Handle lesson updates (e.g., PUT /lessons/1 or PUT /courses/1/lessons/1)
+      if (actualPath.includes('lessons')) {
+        try {
+          const body = await req.json()
+          console.log('Updating lesson with data:', body)
+          
+          let lessonUpdated = false
+          
+          // Handle PUT /lessons/:id
+          if (actualPath.match(/^\/lessons\/\d+$/)) {
+            const lessonId = actualPath.split('/')[2]
+            
+            for (const course of courses) {
+              const lesson = course.lessons.find(l => l.id === lessonId)
+              if (lesson) {
+                lesson.title = body.title || lesson.title
+                lesson.content = body.content || lesson.content
+                lesson.duration_minutes = body.duration_minutes || body.durationMinutes || lesson.duration_minutes
+                lesson.order = body.order || lesson.order
+                lessonUpdated = true
+                console.log('Lesson updated in course:', course.title)
+                break
+              }
+            }
+          }
+          
+          // Handle PUT /courses/:courseId/lessons/:lessonId
+          if (actualPath.match(/^\/courses\/\d+\/lessons\/\d+$/)) {
+            const pathParts = actualPath.split('/')
+            const courseId = pathParts[2]
+            const lessonId = pathParts[4]
+            
+            const course = courses.find(c => c.id === courseId)
+            if (course) {
+              const lesson = course.lessons.find(l => l.id === lessonId)
+              if (lesson) {
+                lesson.title = body.title || lesson.title
+                lesson.content = body.content || lesson.content
+                lesson.duration_minutes = body.duration_minutes || body.durationMinutes || lesson.duration_minutes
+                lesson.order = body.order || lesson.order
+                lessonUpdated = true
+                console.log('Lesson updated in course:', course.title)
+              }
+            }
+          }
+          
+          if (lessonUpdated) {
+            return new Response(JSON.stringify({ 
+              message: 'Lesson updated successfully'
+            }), {
+              status: 200,
+              headers: { 
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
+                ...corsHeaders
+              }
+            })
+          } else {
+            return new Response(JSON.stringify({ error: 'Lesson not found' }), {
+              status: 404,
+              headers: { 
+                'Content-Type': 'application/json',
+                ...corsHeaders
+              }
+            })
+          }
+        } catch (error) {
+          console.log('Lesson update error:', error)
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { 
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          })
+        }
+      }
+      
+      // Handle other resource updates
+      if (actualPath.includes('users') || actualPath.includes('quizzes')) {
         return new Response(JSON.stringify({ 
           message: 'Resource updated successfully'
         }), {
           status: 200,
           headers: { 
             'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
             ...corsHeaders
           }
         })
