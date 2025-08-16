@@ -249,6 +249,59 @@ serve(async (req) => {
       })
     }
     
+    // Flexible route handler for any path pattern
+    if (method === 'GET') {
+      // Handle any path that contains 'leaderboard'
+      if (actualPath.includes('leaderboard')) {
+        return new Response(JSON.stringify({ leaderboard: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle any path that contains 'certificates'
+      if (actualPath.includes('certificates')) {
+        return new Response(JSON.stringify({ certificates: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle any path that contains 'courses'
+      if (actualPath.includes('courses')) {
+        return new Response(JSON.stringify({ courses: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle any path that contains 'users'
+      if (actualPath.includes('users')) {
+        return new Response(JSON.stringify({ users: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+      
+      // Handle any path that contains 'pending'
+      if (actualPath.includes('pending')) {
+        return new Response(JSON.stringify({ pendingUsers: [] }), {
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        })
+      }
+    }
+    
     if (actualPath === '/certificates' && method === 'GET') {
       return new Response(JSON.stringify({ certificates: [] }), {
         headers: { 
