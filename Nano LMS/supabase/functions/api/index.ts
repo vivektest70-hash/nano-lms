@@ -7,8 +7,9 @@ import { create } from 'https://deno.land/x/djwt@v2.8/mod.ts'
 serve(async (req) => {
   console.log('API function called:', req.method, req.url)
   
-  // Handle CORS preflight requests
+  // Handle CORS preflight requests FIRST - before any other logic
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request')
     return new Response(null, { 
       status: 200,
       headers: {
@@ -21,23 +22,32 @@ serve(async (req) => {
     })
   }
 
+  // Common CORS headers for all responses
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true'
+  }
+
   try {
-    // Parse the request
     const { method, url } = req
     const urlObj = new URL(url)
     const fullPath = urlObj.pathname
-    // Remove the function prefix to get the actual path
+    // The pathname is /functions/v1/api/auth/login, so we need to remove /functions/v1/api
     const path = fullPath.replace('/functions/v1/api', '')
     
     console.log('Full URL pathname:', fullPath)
     console.log('Extracted path:', path)
     console.log('Method:', method)
     
-    // Debug: check if path starts with /api and fix it
+    // Debug: check if path still has /api prefix and remove it
     let actualPath = path
     if (path.startsWith('/api/')) {
       actualPath = path.replace('/api/', '/')
       console.log('Fixed path:', actualPath)
+    } else {
+      actualPath = path
     }
     
     // Handle health check
@@ -45,10 +55,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ status: 'ok' }), {
         headers: { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Credentials': 'true'
+          ...corsHeaders
         }
       })
     }
@@ -74,10 +81,7 @@ serve(async (req) => {
             status: 400,
             headers: { 
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Credentials': 'true'
+              ...corsHeaders
             }
           })
         }
@@ -95,10 +99,7 @@ serve(async (req) => {
             status: 401,
             headers: { 
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Credentials': 'true'
+              ...corsHeaders
             }
           })
         }
@@ -113,10 +114,7 @@ serve(async (req) => {
             status: 401,
             headers: { 
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-              'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Credentials': 'true'
+              ...corsHeaders
             }
           })
         }
@@ -153,10 +151,7 @@ serve(async (req) => {
         }), {
           headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-            'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Credentials': 'true'
+            ...corsHeaders
           }
         })
         
@@ -166,10 +161,7 @@ serve(async (req) => {
           status: 500,
           headers: { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-            'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Credentials': 'true'
+            ...corsHeaders
           }
         })
       }
@@ -179,10 +171,7 @@ serve(async (req) => {
       status: 404,
       headers: { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://nano-lms.vercel.app',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Credentials': 'true'
+        ...corsHeaders
       }
     })
 
