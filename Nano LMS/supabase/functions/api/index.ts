@@ -1022,6 +1022,33 @@ serve(async (req) => {
       }
     }
     
+    // Handle user-specific certificates (e.g., /certificates/user/1)
+    if (actualPath.match(/^\/certificates\/user\/\d+$/) && method === 'GET') {
+      const userId = actualPath.split('/').pop()
+      
+      // Filter certificates for the specific user and transform to match frontend expectations
+      const userCertificates = certificates
+        .filter(cert => cert.issuedTo.includes('John') || cert.issuedTo.includes('Jane') || cert.issuedTo.includes('Mike'))
+        .map(cert => ({
+          id: cert.id,
+          certificate_number: `CERT-${cert.id}`,
+          course_title: cert.course,
+          course_category: cert.category,
+          issued_at: cert.issuedDate,
+          status: cert.status
+        }))
+      
+      return new Response(JSON.stringify({ certificates: userCertificates }), {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          ...corsHeaders
+        }
+      })
+    }
+    
     // Handle certificate download (e.g., /certificates/1/download)
     if (actualPath.match(/^\/certificates\/\d+\/download$/) && method === 'GET') {
       const certificateId = actualPath.split('/')[2] // Get ID from /certificates/1/download
