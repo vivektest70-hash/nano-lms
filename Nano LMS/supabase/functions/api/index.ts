@@ -228,7 +228,7 @@ let leaderboard = [
 ]
 
 serve(async (req) => {
-  console.log('API function called:', req.method, req.url)
+  console.log('API function called:', req.method, req.url, 'at', new Date().toISOString())
   
   // Handle CORS preflight requests FIRST - before ANY other logic
   if (req.method === 'OPTIONS') {
@@ -1106,7 +1106,8 @@ serve(async (req) => {
     
     // Handle lesson deletion (e.g., DELETE /lessons/1 or DELETE /courses/1/lessons/1)
     if (actualPath.includes('lessons') && method === 'DELETE') {
-      console.log('Lesson deletion request:', actualPath)
+      console.log('Lesson deletion request:', actualPath, 'at', new Date().toISOString())
+      console.log('Current courses state:', courses.map(c => ({ id: c.id, title: c.title, lessonCount: c.lessons.length })))
       
       // Handle DELETE /lessons/:id
       if (actualPath.match(/^\/lessons\/\d+$/)) {
@@ -1161,6 +1162,7 @@ serve(async (req) => {
           if (lessonIndex !== -1) {
             course.lessons.splice(lessonIndex, 1)
             console.log('Lesson deleted from course:', course.title)
+            console.log('Updated courses state:', courses.map(c => ({ id: c.id, title: c.title, lessonCount: c.lessons.length })))
             
             return new Response(JSON.stringify({ 
               message: 'Lesson deleted successfully',
